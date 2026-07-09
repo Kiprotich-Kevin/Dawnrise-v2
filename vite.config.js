@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/Dawnrise-v2/',
   plugins: [react()],
   server: {
     allowedHosts: ['bf79-197-248-121-49.ngrok-free.app'],
