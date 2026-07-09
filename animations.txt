@@ -1,0 +1,119 @@
+ANIMATIONS INVENTORY — educatex (Dawnrise Training Institute)
+================================================================
+Kept intentionally subtle per project direction. Each entry lists what it
+does, the file(s) that implement it, and every place it's used — so any of
+these can be added or removed independently without hunting through the
+codebase.
+
+--------------------------------------------------------------
+1. PAGE LOAD / ROUTE-CHANGE FADE-IN
+--------------------------------------------------------------
+What:     Whole page content fades up slightly (opacity 0->1, translateY
+          8px->0) whenever you navigate to a new route.
+Class:    motion-safe:animate-page-fade-in
+Defined:  tailwind.config.js -> theme.extend.keyframes['page-fade-in'] /
+          theme.extend.animation['page-fade-in']  (0.5s ease-out, plays once)
+Used in:  src/components/Layout.jsx
+            <main key={pathname} className="motion-safe:animate-page-fade-in">
+          The key={pathname} forces React to remount <main> on every route
+          change, which replays the animation each time.
+Removal:  Delete the className on <main> in Layout.jsx, and optionally the
+          'page-fade-in' keyframes/animation entries in tailwind.config.js.
+Reduced motion: Uses Tailwind's `motion-safe:` variant — automatically
+          skipped when the OS "reduce motion" setting is on.
+
+--------------------------------------------------------------
+2. SCROLL-REVEAL (fade + rise on scroll into view)
+--------------------------------------------------------------
+What:     Section fades in and rises ~24px into place the first time it
+          scrolls into the viewport. Triggers once, then stays visible.
+Files:    src/hooks/useReveal.js   — IntersectionObserver hook (threshold 0.15)
+          src/components/Reveal.jsx — wrapper component using the hook
+Usage:    Wrap any section: <Reveal><SomeSection /></Reveal>
+          or on a raw element: <Reveal as="section" className="...">...</Reveal>
+Used in:
+  src/pages/Home.jsx          — FeatureStrip, About, Courses, CtaBanner,
+                                 Approach, PartnerLogos, Testimonials,
+                                 InnovativeBanner, UpcomingMeetups,
+                                 FaqSection, BlogSection
+                                 (Hero and MarqueeTicker deliberately NOT
+                                 wrapped — Hero is above the fold on load,
+                                 the ticker scrolls continuously already)
+  src/pages/AboutPage.jsx     — About block, stats strip, mission section,
+                                 Testimonials, BlogSection
+  src/pages/CoursesPage.jsx   — main course grid section
+  src/pages/ContactPage.jsx   — main section
+  src/pages/CourseDetailPage.jsx — main section
+  src/pages/EnrollPage.jsx    — success screen, main stepper form section
+Removal:  Unwrap the <Reveal> tags (or delete Reveal.jsx / useReveal.js to
+          remove the capability entirely — then every usage needs unwrapping).
+Reduced motion: useReveal checks prefers-reduced-motion directly and, if
+          set, marks content visible immediately with no animation.
+
+--------------------------------------------------------------
+3. COUNT-UP / COUNTDOWN NUMBERS
+--------------------------------------------------------------
+What:     Numeric stats animate upward from 0 to their target value
+          (ease-out cubic, ~1.5s) the first time they scroll into view.
+          Parses the leading digits from a string like "16+", "500+",
+          "100%" and animates just the number, keeping the suffix.
+File:     src/components/CountUp.jsx (built on useReveal.js from #2)
+Usage:    <CountUp value="16+" className="..." />
+Used in:
+  src/components/About.jsx    — "16+ Years of Experience" stat
+  src/pages/AboutPage.jsx     — all 4 stats-strip numbers
+                                 (16+ Years, 10+ Courses, 500+ Students,
+                                 100% TVETA Accredited)
+Removal:  Replace <CountUp value="X" /> with plain text X, per usage.
+Reduced motion: Jumps directly to the final number, no animation.
+
+--------------------------------------------------------------
+4. HERO IMAGE CAROUSEL — CROSSFADE
+--------------------------------------------------------------
+What:     Hero background photo crossfades between slides.
+How:      Stacked <img> elements, `transition-opacity duration-1000`,
+          toggled via opacity-0 / opacity-100 based on the active index.
+          Auto-advances every 6s via setInterval.
+File:     src/components/Hero.jsx  (SLIDES array — currently 1 real photo
+          + 2 picsum placeholders pending real campus photos)
+Removal:  Trim SLIDES to a single entry — the component already renders a
+          static image with no controls when SLIDES.length is 1.
+
+--------------------------------------------------------------
+5. HERO CAROUSEL MANUAL CONTROLS
+--------------------------------------------------------------
+What:     Prev/Next chevron buttons + dot indicators to control the Hero
+          carousel manually, alongside the auto-advance in #4.
+File:     src/components/Hero.jsx — goPrev() / goNext() / setActive()
+Removal:  Delete the two chevron <button> blocks and/or the dot-indicator
+          <div>; auto-advance in #4 keeps working independently.
+
+--------------------------------------------------------------
+6. MARQUEE TICKER SCROLL (pre-existing, not added by this pass)
+--------------------------------------------------------------
+What:     Continuous horizontal scroll of the duplicated phrase list in
+          the dark ticker bar.
+Class:    animate-marquee
+Defined:  tailwind.config.js -> theme.extend.keyframes.marquee /
+          theme.extend.animation.marquee (22s linear infinite)
+Used in:  src/components/MarqueeTicker.jsx
+Note:     Unlike the animations above, this one does NOT currently respect
+          prefers-reduced-motion (no motion-safe: prefix). Flagging as a
+          known gap — add `motion-safe:` to the className if you want it
+          to pause for reduced-motion users.
+
+================================================================
+Quick reference — files touched by this animation pass:
+  tailwind.config.js          (new keyframes/animation: page-fade-in)
+  src/hooks/useReveal.js      (new)
+  src/components/Reveal.jsx   (new)
+  src/components/CountUp.jsx  (new)
+  src/components/Layout.jsx   (page-fade-in applied)
+  src/components/Hero.jsx     (more slides + manual controls)
+  src/components/About.jsx    (CountUp applied)
+  src/pages/Home.jsx          (Reveal applied)
+  src/pages/AboutPage.jsx     (Reveal + CountUp applied)
+  src/pages/CoursesPage.jsx   (Reveal applied)
+  src/pages/ContactPage.jsx   (Reveal applied)
+  src/pages/CourseDetailPage.jsx (Reveal applied)
+  src/pages/EnrollPage.jsx    (Reveal applied)
